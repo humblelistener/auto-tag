@@ -135,7 +135,7 @@ WARNING: When tag-able resources are created using CloudFormation __StackSets__ 
 
 __Tags Applied__: C=Creator, T=Create Time, I=Invoked By
 
-|Technology|Event Name|Tags Applied|IAM Deny Tag Support
+|Resource|Event Name|Tags Applied|IAM Deny Tag Support
 |----------|----------|------------|----------------------
 |AutoScaling Group|CreateAutoScalingGroup|C, T, I|Yes
 |AutoScaling Group Instances w/ENI & Volume|RunInstances|C, T, I|Yes
