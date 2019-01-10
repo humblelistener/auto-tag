@@ -1,11 +1,24 @@
 #!/bin/bash
 
-echo 1. Zipping code for deployment
+echo "1. Zipping code for deployment"
 pushd lib
 zip -r autotag.zip *
 popd
 mv lib/autotag.zip .
+npm prune --production
 zip -g autotag.zip -r node_modules/
-echo ---
-echo 2. Uploading code via AWS CLI
-aws lambda --region ap-northeast-1 update-function-code --function-name arn:aws:lambda:[AWS_REGION]:[AWS_ACCOUNT_ID]:function:gs_autotag --zip-file fileb:///[PATH_TO_AUTOTAG_DIR]/autotag.zip
+
+echo "--- deploy lambda code to s3"
+BUCKET_PREFIX="gorillastack-autotag-releases"
+echo "upload code zip to S3 bucket"
+aws s3 cp --acl public-read autotag.zip s3://${BUCKET_PREFIX}/autotag-0.4.0.zip 
+
+echo "sync to each region"
+# ap-south-1 bucket name has been taken
+region_array=("ap-southeast-2" "ap-southeast-1" "ap-northeast-1" "ap-northeast-2" "eu-central-1" "eu-west-1" "eu-west-2" "eu-west-3" "us-west-1" "us-west-2" "us-east-1" "us-east-2" "ca-central-1")
+for region in "${region_array[@]}"
+do
+  export AWS_DEFAULT_REGION=$region
+  echo "aws sync to $region"
+  aws s3 sync --acl public-read s3://${BUCKET_PREFIX}/ s3://${BUCKET_PREFIX}-$region/
+done

@@ -21,30 +21,19 @@ There are two separate CloudFormation templates for CloudWatch Events, the first
 
 
 ## Installation
+### Code & Templates
 
-### Generate the Lambda zip package
-#### Redhat 7.4
+We have a version of the AutoTag code and templates in each region, to make deployment easy regardless of what region you are deploying your CloudFormation template.
 
-```bash
-cd ~
-curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
-sudo python get-pip.py
-sudo pip install awscli
-sudo yum -y install gcc-c++ make git zip
-sudo curl -sL https://rpm.nodesource.com/setup_8.x | sudo -E bash -
-sudo yum -y install nodejs
-sudo npm install grunt-cli -g
-git clone https://github.com/GorillaStack/auto-tag.git
-cd auto-tag
-npm install --save
-mv node_modules/ lib/
-npm install grunt-run --save-dev
-cd lib/
-grunt run:babel-once 
-zip -r9 auto-tag-0.9.0.zip -x\*.zip * -q
-```
+While these generally follow a pattern (`gorillastack-autotag-releases-${regionId}`), sometimes when attempting to create a bucket in a new region, the matching named pattern is taken.  To protect against supply chain issues, please reference the right bucket name from this template.
+
+
+|| Region || Bucketname || Code File Name || Template Name ||
+|||
+|||
 
 ### Pick a Deployment Method
+
 #### Deploy with Console (S3 Object Method)
 
 __CloudFormation Main Stack__ Deploy this stack first in a single "master" region, probably in the same region as your CloudTrail S3 Bucket. This stack deploys the lambda function and permissions for the bucket.
@@ -56,8 +45,8 @@ __CloudFormation Main Stack__ Deploy this stack first in a single "master" regio
 1. Name the stack "AutoTag" - this name can be anything
 1. In the parameter section:
   * CloudTrailBucketName: Name the S3 bucket that the template will create.  This needs to be unique for the region, so select something specific
-  * CodeS3Bucket: The name of the code bucket in S3 ~~As mentioned, we have a version of AutoTag in each region, to make deployment easy regardless of what region you are deploying your CloudFormation template.  Edit this parameter to match your region.  It should have the following pattern: gorillastack-autotag-releases-${regionId}.  E.g. gorillastack-autotag-releases-ap-northeast-1, gorillastack-autotag-releases-us-west-2~~
-  * CodeS3Path: This is the version of AutoTag that you wish to deploy.  The default value `autotag-0.3.0.zip` is the latest version
+  * CodeS3Bucket: The name of the code bucket in S3. (See Table)
+  * CodeS3Path: This is the version of AutoTag that you wish to deploy.  The default value `autotag-0.4.0.zip` is the latest version
   * AutoTagDebugLogging: Enable/Disable Debug Logging for the Lambda Function for **all** processed CloudTrail events
   * AutoTagDebugLoggingOnFailure: Enable/Disable Debug Logging when the Lambda Function has a failure
   * AutoTagTagsCreateTime: Enable/Disable the "CreateTime" tagging for all resources
@@ -338,3 +327,28 @@ $ grunt run:babel  # runs interactively, issue ^C to existing
 ```
 
 Export the generated es5 `lib/` directory to AWS rather than the es6 `src/` directory.
+
+
+##### Generate the Lambda zip package
+###### Redhat 7.4
+
+```bash
+cd ~
+curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+sudo python get-pip.py
+sudo pip install awscli
+sudo yum -y install gcc-c++ make git zip
+sudo curl -sL https://rpm.nodesource.com/setup_8.x | sudo -E bash -
+sudo yum -y install nodejs
+sudo npm install grunt-cli -g
+git clone https://github.com/GorillaStack/auto-tag.git
+cd auto-tag
+npm install --save
+mv node_modules/ lib/
+npm install grunt-run --save-dev
+cd lib/
+grunt run:babel-once 
+zip -r9 auto-tag-0.9.0.zip -x\*.zip * -q
+```
+
+
