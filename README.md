@@ -338,3 +338,69 @@ $ grunt run:babel  # runs interactively, issue ^C to existing
 ```
 
 Export the generated es5 `lib/` directory to AWS rather than the es6 `src/` directory.
+
+## How I am deploying it?
+
+First step ensure ruby is installed.
+
+```bash
+brew update
+brew install ruby-build
+brew install rbenv
+```
+
+### Package the Lambda Function code
+
+The following command packages the code into `lib` folder in root.
+```
+npm install grunt-cli -g
+npm i
+grunt run:babel-once
+```
+
+### Upload the Code to S3
+
+Using the instruction in `deploy.sh`
+
+```bash
+pushd lib
+zip -r autotag.zip *
+popd
+mv lib/autotag.zip .
+zip -g autotag.zip -r node_modules/
+aws-vault exec pageup-development -- aws s3 mb s3://pageup-gs-autotag-ap-southeast-2  
+aws-vault exec pageup-development -- aws s3 cp autotag.zip s3://pageup-gs-autotag-ap-southeast-2/
+```
+
+### Deploy the CF Stack
+
+Inside the `cloud_formation/event_multi_region_template` folder run the following commmand.
+
+```bash
+aws-vault exec pageup-development -- ruby autotag_event_main-template.rb create --stack-name autotag-multiregion-invoke-stack --parameters "CodeS3Bucket=pageup-gs-autotag-ap-southeast-2;CodeS3Path=autotag.zip"
+```
+
+### Deploy the stackset for all regions to be monitored
+
+Create stackset with the collector template
+
+```bash
+aws-vault exec pageup-development \
+-- aws cloudformation create-stack-set \
+    --administration-role-arn "arn:aws:iam::xxxxxx:role/AutotagStackSetAdministrationRole" \
+    --template-body "file://autotag_event_collector-template.json" \
+    --stack-set-name "autotag-collector-stackset" \
+    --execution-role-name "AutotagStackSetExecutionRole" \
+    --region "ap-southeast-2"
+```
+
+Create stack instances in all our fav regions
+
+```bash
+aws-vault exec pageup-development \
+-- aws cloudformation create-stack-instances \
+    --stack-set-name "autotag-collector-stackset" \
+    --accounts "xxxxxx" \
+    --regions "ap-southeast-1" "us-east-1" "us-east-2" "us-west-1" "us-west-2" "ap-northeast-1" "eu-west-1" \
+    --parameter-overrides "MainAwsRegion=ap-southeast-2"
+```

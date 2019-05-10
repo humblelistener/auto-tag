@@ -17,3 +17,5 @@ cloud_formation/event_multi_region_template/autotag_event_main-template.json
 pgi_deployment/
 **/old2/
 test_suite_sum/
+**.bundle
+**/vendor/
