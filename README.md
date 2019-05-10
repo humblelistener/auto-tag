@@ -387,7 +387,7 @@ Create stackset with the collector template
 ```bash
 aws-vault exec pageup-development \
 -- aws cloudformation create-stack-set \
-    --administration-role-arn "arn:aws:iam::686417117916:role/AutotagStackSetAdministrationRole" \
+    --administration-role-arn "arn:aws:iam::xxxxxx:role/AutotagStackSetAdministrationRole" \
     --template-body "file://autotag_event_collector-template.json" \
     --stack-set-name "autotag-collector-stackset" \
     --execution-role-name "AutotagStackSetExecutionRole" \
@@ -400,7 +400,7 @@ Create stack instances in all our fav regions
 aws-vault exec pageup-development \
 -- aws cloudformation create-stack-instances \
     --stack-set-name "autotag-collector-stackset" \
-    --accounts "686417117916" \
+    --accounts "xxxxxx" \
     --regions "ap-southeast-1" "us-east-1" "us-east-2" "us-west-1" "us-west-2" "ap-northeast-1" "eu-west-1" \
     --parameter-overrides "MainAwsRegion=ap-southeast-2"
 ```
